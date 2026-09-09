@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Twitter, Facebook, Instagram, Linkedin } from "lucide-react";
+import { Facebook, Instagram, Linkedin, Twitter } from "lucide-react";
 import { KudiPalLogo } from "@/components/branding/kudipal-logo";
 
 export function Footer() {
@@ -12,10 +12,10 @@ export function Footer() {
                             panelClassName="px-3 shadow-sm"
                             subtitleClassName="text-gray-400"
                             showSubtitle
-                            subtitle="Smart, simple money support for everyday business decisions"
+                            subtitle="WhatsApp-first marketplace operations"
                         />
                         <p className="text-gray-400 text-sm leading-relaxed">
-                            Chat-first money support for Nigerian SMBs. Track cash flow, spot issues early, and stay in control.
+                            KudiPal connects Nigerian buyers to nearby verified vendors and service agents through chat.
                         </p>
                         <div className="flex gap-4">
                             <Twitter className="h-5 w-5 text-gray-400 hover:text-white cursor-pointer" />
@@ -28,29 +28,30 @@ export function Footer() {
                     <div>
                         <h4 className="font-semibold mb-6">Product</h4>
                         <ul className="space-y-3 text-sm text-gray-400">
-                            <li><Link href="#" className="hover:text-white">Features</Link></li>
-                            <li><Link href="#" className="hover:text-white">Integration</Link></li>
-                            <li><Link href="#" className="hover:text-white">Pricing</Link></li>
-                            <li><Link href="#" className="hover:text-white">Updates</Link></li>
+                            <li><Link href="/marketplace" className="hover:text-white">Marketplace</Link></li>
+                            <li><Link href="/whatsapp" className="hover:text-white">WhatsApp</Link></li>
+                            <li><Link href="/dashboard" className="hover:text-white">Dashboard</Link></li>
+                            <li><Link href="/onboarding/business-info" className="hover:text-white">Onboarding</Link></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h4 className="font-semibold mb-6">Company</h4>
+                        <h4 className="font-semibold mb-6">Architecture</h4>
                         <ul className="space-y-3 text-sm text-gray-400">
-                            <li><Link href="#" className="hover:text-white">About Us</Link></li>
-                            <li><Link href="#" className="hover:text-white">Careers</Link></li>
-                            <li><Link href="#" className="hover:text-white">Blog</Link></li>
-                            <li><Link href="#" className="hover:text-white">Contact</Link></li>
+                            <li><Link href="/scale" className="hover:text-white">Scale</Link></li>
+                            <li><Link href="/security" className="hover:text-white">Security</Link></li>
+                            <li><Link href="/marketplace" className="hover:text-white">RAG Matching</Link></li>
+                            <li><Link href="/whatsapp" className="hover:text-white">Loop Engineering</Link></li>
                         </ul>
                     </div>
 
                     <div>
-                        <h4 className="font-semibold mb-6">Legal</h4>
+                        <h4 className="font-semibold mb-6">Trust</h4>
                         <ul className="space-y-3 text-sm text-gray-400">
-                            <li><Link href="#" className="hover:text-white">Privacy Policy</Link></li>
-                            <li><Link href="#" className="hover:text-white">Terms of Service</Link></li>
-                            <li><Link href="#" className="hover:text-white">Security</Link></li>
+                            <li><Link href="/security" className="hover:text-white">Security Controls</Link></li>
+                            <li><Link href="/scale" className="hover:text-white">Reliability</Link></li>
+                            <li><Link href="/login" className="hover:text-white">Merchant Login</Link></li>
+                            <li><Link href="/test-supabase" className="hover:text-white">Supabase Test</Link></li>
                         </ul>
                     </div>
                 </div>

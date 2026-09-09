@@ -28,7 +28,17 @@ export const fallbackBusinessSummary: BusinessSummary = {
     ],
 };
 
-export function buildBusinessSummary(expenses: any[] = [], receipts: any[] = [], transactions: any[] = []): BusinessSummary {
+type FinancialRow = {
+    amount?: number | string | null;
+    category?: string | null;
+    direction?: string | null;
+};
+
+export function buildBusinessSummary(
+    expenses: FinancialRow[] = [],
+    receipts: unknown[] = [],
+    transactions: FinancialRow[] = [],
+): BusinessSummary {
     if (transactions.length) {
         const moneyIn = transactions
             .filter((transaction) => String(transaction.direction || "").toLowerCase() === "in")

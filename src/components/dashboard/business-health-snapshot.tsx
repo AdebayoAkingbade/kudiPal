@@ -92,7 +92,7 @@ export function BusinessHealthSnapshot({ summary }: BusinessHealthSnapshotProps)
             <div className="flex items-center justify-center gap-2 text-xs text-slate-400">
                 <p>🔒 Your data is secure</p>
                 <span className="h-1 w-1 rounded-full bg-slate-300"></span>
-                <p>🛡️ We don't share your data</p>
+                <p>🛡️ We do not share your data</p>
             </div>
         </div>
     );

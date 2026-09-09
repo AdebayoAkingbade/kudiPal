@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,15 +9,7 @@ import { fallbackBusinessSummary, formatMoney, type BusinessSummary } from "@/li
 
 export default function ResultsPage() {
     const router = useRouter();
-    const [summary, setSummary] = useState<BusinessSummary>(fallbackBusinessSummary);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return;
-        const stored = localStorage.getItem("latestBusinessSummary");
-        if (stored) {
-            setSummary(JSON.parse(stored));
-        }
-    }, []);
+    const [summary] = useState<BusinessSummary>(readStoredSummary);
 
     return (
         <div className="mx-auto max-w-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -48,4 +40,15 @@ export default function ResultsPage() {
             </Card>
         </div>
     );
+}
+
+function readStoredSummary() {
+    if (typeof window === "undefined") return fallbackBusinessSummary;
+
+    try {
+        const stored = localStorage.getItem("latestBusinessSummary");
+        return stored ? JSON.parse(stored) as BusinessSummary : fallbackBusinessSummary;
+    } catch {
+        return fallbackBusinessSummary;
+    }
 }

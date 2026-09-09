@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Star } from "lucide-react";
 
 export function Testimonials() {
@@ -42,13 +43,15 @@ export function Testimonials() {
                                 {[1, 2, 3, 4, 5].map(star => <Star key={star} className="h-4 w-4 fill-current" />)}
                             </div>
                             <p className="text-gray-300 leading-relaxed mb-6">
-                                "{review.text}"
+                                {`"${review.text}"`}
                             </p>
                             <div className="flex items-center gap-4">
                                 <div className="h-12 w-12 rounded-full overflow-hidden border-2 border-primary/20 shadow-sm flex-shrink-0">
-                                    <img 
-                                        src={review.img} 
-                                        alt={review.name} 
+                                    <Image
+                                        src={review.img}
+                                        alt={review.name}
+                                        width={48}
+                                        height={48}
                                         className="h-full w-full object-cover"
                                     />
                                 </div>

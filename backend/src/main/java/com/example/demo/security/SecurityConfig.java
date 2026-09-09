@@ -18,6 +18,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +33,10 @@ public class SecurityConfig {
 
     @Value("${supabase.anon.key:}")
     private String supabaseAnonKey;
+
+    @Value("${app.security.cors.allowed-origins:http://localhost:3000}")
+    private String allowedOrigins;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -39,7 +44,16 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/api/auth/**", "/api/webhook/whatsapp/**", "/api/webhook/paystack/**").permitAll()
+                .requestMatchers(
+                    "/api/auth/**",
+                    "/api/webhook/whatsapp/**",
+                    "/api/webhook/paystack/**",
+                    "/actuator/health/**",
+                    "/actuator/info",
+                    "/v3/api-docs/**",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**"
+                ).permitAll()
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2
@@ -100,15 +114,15 @@ public class SecurityConfig {
 
             // 2. Try JWKS (Asymmetric - supports ES256, RS256, etc.)
             try {
-                String fallbackUri = (jwkSetUri != null && !jwkSetUri.isEmpty() && !jwkSetUri.startsWith("${"))
-                                    ? jwkSetUri
-                                    : "https://ldwcxmzgazzzefemwjdn.supabase.co/auth/v1/.well-known/jwks.json";
+                if (jwkSetUri == null || jwkSetUri.isBlank() || jwkSetUri.startsWith("${")) {
+                    throw new org.springframework.security.oauth2.jwt.BadJwtException("JWT_JWK_SET_URI is not configured");
+                }
                 
                 // Supabase JWKS is public; no API key needed in the URL
                 
                 System.out.println(">>> SECURITY DEBUG: Attempting JWKS Verification at endpoint with key.");
                 
-                NimbusJwtDecoder.JwkSetUriJwtDecoderBuilder builder = NimbusJwtDecoder.withJwkSetUri(fallbackUri);
+                NimbusJwtDecoder.JwkSetUriJwtDecoderBuilder builder = NimbusJwtDecoder.withJwkSetUri(jwkSetUri);
                 
                 // Explicitly allow ES256 if detected
                 if ("ES256".equals(alg)) {
@@ -143,13 +157,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // Adjust in production to restrict origins
-        configuration.setAllowedOrigins(Arrays.asList("*")); 
+        configuration.setAllowedOrigins(parseCsv(allowedOrigins));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With", "Accept", "Origin", "Access-Control-Request-Method", "Access-Control-Request-Headers"));
-        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
+        configuration.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
+    }
+
+    private List<String> parseCsv(String csv) {
+        if (csv == null || csv.isBlank()) {
+            return List.of("http://localhost:3000");
+        }
+        return Arrays.stream(csv.split(","))
+            .map(String::trim)
+            .filter(value -> !value.isBlank())
+            .toList();
     }
 }

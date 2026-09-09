@@ -96,6 +96,7 @@ export function AuthEntry({
         if (otpSent && otpCode.length === 6 && otpDigits.every(Boolean) && !loading) {
             void handleVerifyOtp(otpCode);
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [otpCode, otpDigits, otpSent, loading]);
 
     async function routeAfterAuth() {
@@ -148,7 +149,7 @@ export function AuthEntry({
             if (otpError) throw otpError;
             setOtpSent(true);
             setOtpDigits(["", "", "", "", "", ""]);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(getFriendlyAuthError(err));
         } finally {
             setLoading(false);
@@ -170,7 +171,7 @@ export function AuthEntry({
 
             await ensureProfile();
             await routeAfterAuth();
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(getFriendlyAuthError(err));
         } finally {
             setLoading(false);
@@ -203,7 +204,7 @@ export function AuthEntry({
             }
 
             throw new Error(`${provider} sign in did not return a redirect URL.`);
-        } catch (err: any) {
+        } catch (err: unknown) {
             setError(getFriendlyAuthError(err, provider));
             setLoading(false);
         }

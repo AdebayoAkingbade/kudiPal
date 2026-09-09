@@ -5,7 +5,6 @@ import {
     TrendingUp,
     ArrowUpRight,
     DollarSign,
-    BarChart3,
     Target,
     Zap,
     Users,
@@ -225,7 +224,7 @@ export default function RevenuePage() {
                         </div>
                         <h3 className="text-2xl font-bold mb-3">Optimize Pricing with AI</h3>
                         <p className="text-white/60 mb-8 leading-relaxed max-w-sm">
-                            Our AI detected that your competitor's prices for "Electronics" category are 5% higher. You can increase your margin without losing customers.
+                            Our AI detected that your competitor&apos;s prices for &quot;Electronics&quot; category are 5% higher. You can increase your margin without losing customers.
                         </p>
                         <div className="mt-auto">
                             <Button

@@ -79,8 +79,8 @@ export default function BusinessInfoPage() {
             });
 
             router.push('/onboarding/upload-data');
-        } catch (err: any) {
-            setError(err.message || "We couldn't save your business details.");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "We couldn't save your business details.");
         } finally {
             setLoading(false);
         }

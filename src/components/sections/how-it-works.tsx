@@ -36,7 +36,7 @@ export function HowItWorks() {
                         How It Works
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        We've simplified the process to 3 simple steps so you can focus on your business.
+                        We have simplified the process to 3 simple steps so you can focus on your business.
                     </p>
                 </div>
 

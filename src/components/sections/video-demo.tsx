@@ -4,10 +4,16 @@ import { useState } from "react";
 import Image from "next/image";
 import { Play, X } from "lucide-react";
 
-export function VideoDemo() {
-    const [currentStep, setCurrentStep] = useState(0);
+type Tutorial = {
+    title: string;
+    description: string;
+    img: string;
+    steps: string[];
+    action: string;
+};
 
-    const tutorials = [
+export function VideoDemo() {
+    const tutorials: Tutorial[] = [
         {
             title: "Daily AI Insights",
             description: "KudiPal automatically scans your POS and bank data every 24 hours.",
@@ -46,7 +52,7 @@ export function VideoDemo() {
     const [activeTutorial, setActiveTutorial] = useState(tutorials[0]);
     const [isPlaying, setIsPlaying] = useState(false);
 
-    const handlePlay = (tutorial: any) => {
+    const handlePlay = (tutorial: Tutorial) => {
         setActiveTutorial(tutorial);
         setIsPlaying(true);
     };
@@ -67,9 +73,11 @@ export function VideoDemo() {
                     onClick={() => handlePlay(tutorials[0])}
                     className="relative w-full max-w-4xl mx-auto rounded-3xl overflow-hidden shadow-2xl bg-gray-900 aspect-video mb-12 group cursor-pointer border-4 border-white shadow-purple-500/20"
                 >
-                    <img
+                    <Image
                         src="/images/tutorial-insights.png"
                         alt="Daily AI Insights"
+                        fill
+                        sizes="(min-width: 1024px) 896px, 100vw"
                         className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-all duration-700 group-hover:scale-105"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
@@ -100,6 +108,7 @@ export function VideoDemo() {
                                 src={tutorial.img}
                                 alt={tutorial.title}
                                 fill
+                                sizes="(min-width: 768px) 33vw, 100vw"
                                 className="object-cover opacity-50 group-hover:opacity-80 transition-all duration-500 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
@@ -134,6 +143,7 @@ export function VideoDemo() {
                                         src={activeTutorial.img}
                                         alt={activeTutorial.title}
                                         fill
+                                        sizes="(min-width: 768px) 65vw, 100vw"
                                         className="object-contain animate-in fade-in zoom-in-110 duration-1000"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>

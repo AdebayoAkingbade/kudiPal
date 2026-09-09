@@ -49,7 +49,7 @@ public class MarketplaceIntentService {
 
         if (!"BUY_REQUEST".equalsIgnoreCase(fallback.getIntent()) || incompleteRuleMatch) {
             IntentDetectionResult openAiResult = openAiStructuredExtractionService.extract(message, promptVersion);
-            if (openAiResult != null && "BUY_REQUEST".equalsIgnoreCase(openAiResult.getIntent())) {
+            if (openAiResult != null && isSupportedIntent(openAiResult.getIntent())) {
                 finalResult = openAiResult;
             }
         }
@@ -69,5 +69,13 @@ public class MarketplaceIntentService {
         example.setConfidence(BigDecimal.valueOf(result.getConfidence()));
         example.setPromptVersion(promptVersion);
         trainingExampleRepository.save(example);
+    }
+
+    private boolean isSupportedIntent(String intent) {
+        return intent != null && switch (intent.toUpperCase()) {
+            case "BUY_REQUEST", "SELLER_ACCEPT", "SELLER_DECLINE", "RECORD_SALE", "CREATE_INVOICE",
+                 "CUSTOMER_SUPPORT", "INVENTORY_UPDATE", "UNKNOWN" -> true;
+            default -> false;
+        };
     }
 }

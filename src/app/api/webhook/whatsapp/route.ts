@@ -3,21 +3,19 @@ import { createClient } from '@supabase/supabase-js';
 import twilio from 'twilio';
 import OpenAI from 'openai';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-const accountSid = process.env.TWILIO_ACCOUNT_SID!;
-const authToken = process.env.TWILIO_AUTH_TOKEN!;
-const twilioNumber = process.env.TWILIO_WHATSAPP_NUMBER!;
-const client = twilio(accountSid, authToken);
-
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+type ExpenseRow = {
+    date?: string | null;
+    merchant_name?: string | null;
+    amount?: number | string | null;
+};
 
 export async function POST(req: Request) {
     try {
+        const supabase = getSupabaseClient();
+        const twilioClient = getTwilioClient();
+        const openai = getOpenAIClient();
+        const twilioNumber = requiredEnv("TWILIO_WHATSAPP_NUMBER");
+
         // Twilio sends application/x-www-form-urlencoded
         const bodyText = await req.text();
         const urlParams = new URLSearchParams(bodyText);
@@ -43,7 +41,7 @@ export async function POST(req: Request) {
             
         if (profileError || !profile) {
             // Unrecognized user
-            await client.messages.create({
+            await twilioClient.messages.create({
                 body: "Hello! KudiPal doesn't recognize this number. Please log in to your dashboard and connect your WhatsApp number.",
                 from: `whatsapp:${twilioNumber}`,
                 to: twilioFrom
@@ -62,7 +60,7 @@ export async function POST(req: Request) {
         // Prepare context
         const businessName = profile.business_name || 'your business';
         const contextStr = expenses && expenses.length > 0
-            ? `Recent expenses:\n${expenses.map(e => `- ${e.date || ''}: ${e.merchant_name} (₦${e.amount})`).join('\n')}`
+            ? `Recent expenses:\n${(expenses as ExpenseRow[]).map(e => `- ${e.date || ''}: ${e.merchant_name} (₦${e.amount})`).join('\n')}`
             : 'No recent expenses recorded.';
             
         // 3. Ask OpenAI
@@ -85,7 +83,7 @@ export async function POST(req: Request) {
         const aiResponse = completion.choices[0]?.message?.content || "I'm sorry, I'm having trouble analyzing your request right now.";
         
         // 4. Send response back to WhatsApp via Twilio
-        await client.messages.create({
+        await twilioClient.messages.create({
             body: aiResponse,
             from: `whatsapp:${twilioNumber}`,
             to: twilioFrom
@@ -93,8 +91,44 @@ export async function POST(req: Request) {
         
         return NextResponse.json({ status: 'success' });
         
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Webhook processing error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
+}
+
+function getSupabaseClient() {
+    return createClient(
+        requiredEnv("NEXT_PUBLIC_SUPABASE_URL"),
+        requiredEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    );
+}
+
+function getTwilioClient() {
+    const accountSid = requiredEnv("TWILIO_ACCOUNT_SID");
+    const authToken = requiredEnv("TWILIO_AUTH_TOKEN");
+
+    if (!accountSid.startsWith("AC")) {
+        throw new Error("TWILIO_ACCOUNT_SID must start with AC.");
+    }
+
+    return twilio(accountSid, authToken);
+}
+
+function getOpenAIClient() {
+    return new OpenAI({
+        apiKey: requiredEnv("OPENAI_API_KEY"),
+    });
+}
+
+function requiredEnv(name: string) {
+    const value = process.env[name];
+    if (!value) {
+        throw new Error(`${name} is required.`);
+    }
+    return value;
+}
+
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Unknown webhook processing error";
 }

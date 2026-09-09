@@ -3,6 +3,7 @@ package com.example.demo.marketplace.service;
 import com.example.demo.marketplace.dto.IntentDetectionResult;
 import com.example.demo.marketplace.dto.SellerMatchResult;
 import com.example.demo.marketplace.entity.MarketplaceProduct;
+import com.example.demo.marketplace.entity.MarketplaceUser;
 import com.example.demo.marketplace.repository.MarketplaceProductRepository;
 import org.springframework.stereotype.Service;
 
@@ -33,16 +34,20 @@ public class SellerMatchingService {
                 continue;
             }
 
-            double productScore = overlapScore(request.getProduct(), product.getName());
-            if (productScore <= 0.20) {
+            double productRelevance = overlapScore(request.getProduct(), product.getName());
+            if (productRelevance <= 0.20) {
                 continue;
             }
 
-            double locationScore = locationScore(request.getLocation(), product.getUser().getLocation());
+            double distanceScore = locationScore(request.getLocation(), product.getUser().getLocation());
             double priceScore = priceScore(request.getBudget(), product.getPrice());
-            double ratingScore = normalizeRating(product.getUser().getRating());
+            double reputationScore = normalizeRating(product.getUser().getRating());
+            double responseSpeedScore = responseSpeedScore(product.getUser());
 
-            double totalScore = (productScore * 0.40) + (locationScore * 0.25) + (priceScore * 0.20) + (ratingScore * 0.15);
+            double totalScore = (distanceScore * 0.40)
+                + (priceScore * 0.30)
+                + (reputationScore * 0.20)
+                + (responseSpeedScore * 0.10);
 
             SellerMatchResult result = new SellerMatchResult();
             result.setSellerId(product.getUser().getId());
@@ -111,6 +116,10 @@ public class SellerMatchingService {
             return 0.50;
         }
         return Math.min(1.0, rating.doubleValue() / 5.0);
+    }
+
+    private double responseSpeedScore(MarketplaceUser seller) {
+        return 0.70;
     }
 
     private Set<String> tokenize(String value) {

@@ -1,5 +1,7 @@
 package com.example.demo.controller;
 
+import com.example.demo.marketplace.entity.MerchantWhatsAppChannel;
+import com.example.demo.marketplace.service.MerchantWhatsAppChannelService;
 import com.example.demo.marketplace.service.MarketplaceChatService;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,12 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 public class WhatsAppWebhookController {
 
     private final MarketplaceChatService marketplaceChatService;
+    private final MerchantWhatsAppChannelService channelService;
 
     @Value("${whatsapp.cloud.verify-token:kudipal-verify-token}")
     private String verifyToken;
 
-    public WhatsAppWebhookController(MarketplaceChatService marketplaceChatService) {
+    public WhatsAppWebhookController(MarketplaceChatService marketplaceChatService,
+                                     MerchantWhatsAppChannelService channelService) {
         this.marketplaceChatService = marketplaceChatService;
+        this.channelService = channelService;
     }
 
     @GetMapping
@@ -44,6 +49,12 @@ public class WhatsAppWebhookController {
         for (JsonNode entry : entries) {
             for (JsonNode change : entry.path("changes")) {
                 JsonNode value = change.path("value");
+                String receivingPhoneNumberId = value.path("metadata").path("phone_number_id").asText("");
+                channelService.findByPhoneNumberId(receivingPhoneNumberId)
+                    .ifPresentOrElse(
+                        channel -> logRoutedChannel(channel, receivingPhoneNumberId),
+                        () -> logUnknownChannel(receivingPhoneNumberId)
+                    );
                 JsonNode messages = value.path("messages");
                 if (!messages.isArray()) {
                     continue;
@@ -64,5 +75,16 @@ public class WhatsAppWebhookController {
         }
 
         return ResponseEntity.ok().build();
+    }
+
+    private void logRoutedChannel(MerchantWhatsAppChannel channel, String phoneNumberId) {
+        System.out.println("Routing WhatsApp webhook for phone_number_id=" + phoneNumberId +
+            " to merchant=" + channel.getUser().getBusinessName());
+    }
+
+    private void logUnknownChannel(String phoneNumberId) {
+        if (phoneNumberId != null && !phoneNumberId.isBlank()) {
+            System.out.println("Received WhatsApp webhook for unregistered phone_number_id=" + phoneNumberId);
+        }
     }
 }

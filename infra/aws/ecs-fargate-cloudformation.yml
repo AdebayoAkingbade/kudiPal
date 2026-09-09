@@ -1,0 +1,190 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: KudiPal production baseline on ECS Fargate, RDS PostgreSQL, ElastiCache Redis, SQS, WAF, and Secrets Manager.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Default: prod
+  ContainerImage:
+    Type: String
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  PrivateSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  PublicSubnets:
+    Type: List<AWS::EC2::Subnet::Id>
+  CertificateArn:
+    Type: String
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub kudipal-${EnvironmentName}
+      ClusterSettings:
+        - Name: containerInsights
+          Value: enabled
+
+  AppSecrets:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub kudipal/${EnvironmentName}/app
+      SecretString: !Sub |
+        {
+          "DATABASE_PASSWORD": "${DatabasePassword}",
+          "OPENAI_API_KEY": "replace-me",
+          "PAYSTACK_SECRET_KEY": "replace-me",
+          "WHATSAPP_CLOUD_ACCESS_TOKEN": "replace-me",
+          "PII_ENCRYPTION_KEY": "replace-with-32-byte-base64-key"
+        }
+
+  InboundMessagesQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub kudipal-${EnvironmentName}-inbound-messages
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt InboundMessagesDlq.Arn
+        maxReceiveCount: 5
+
+  InboundMessagesDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub kudipal-${EnvironmentName}-inbound-messages-dlq
+
+  PaymentEventsQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub kudipal-${EnvironmentName}-payment-events
+      VisibilityTimeout: 60
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt PaymentEventsDlq.Arn
+        maxReceiveCount: 5
+
+  PaymentEventsDlq:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub kudipal-${EnvironmentName}-payment-events-dlq
+
+  DatabaseSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: KudiPal RDS access
+      VpcId: !Ref VpcId
+
+  Database:
+    Type: AWS::RDS::DBInstance
+    DeletionPolicy: Snapshot
+    Properties:
+      DBInstanceIdentifier: !Sub kudipal-${EnvironmentName}
+      Engine: postgres
+      EngineVersion: "16.4"
+      DBInstanceClass: db.m7g.large
+      AllocatedStorage: 100
+      StorageEncrypted: true
+      BackupRetentionPeriod: 35
+      MultiAZ: true
+      PubliclyAccessible: false
+      DBName: kudipal
+      MasterUsername: kudipal
+      MasterUserPassword: !Ref DatabasePassword
+      VPCSecurityGroups:
+        - !Ref DatabaseSecurityGroup
+
+  TaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: kudipal-app-access
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:SendMessage
+                  - sqs:ReceiveMessage
+                  - sqs:DeleteMessage
+                Resource:
+                  - !GetAtt InboundMessagesQueue.Arn
+                  - !GetAtt PaymentEventsQueue.Arn
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref AppSecrets
+
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub /ecs/kudipal-${EnvironmentName}
+      RetentionInDays: 30
+
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub kudipal-${EnvironmentName}
+      Cpu: "1024"
+      Memory: "2048"
+      NetworkMode: awsvpc
+      RequiresCompatibilities: [FARGATE]
+      ExecutionRoleArn: !GetAtt TaskExecutionRole.Arn
+      TaskRoleArn: !GetAtt TaskRole.Arn
+      ContainerDefinitions:
+        - Name: backend
+          Image: !Ref ContainerImage
+          PortMappings:
+            - ContainerPort: 8081
+          Environment:
+            - Name: DATABASE_URL
+              Value: !Sub jdbc:postgresql://${Database.Endpoint.Address}:5432/kudipal
+            - Name: DATABASE_USERNAME
+              Value: kudipal
+            - Name: AWS_SQS_ENABLED
+              Value: "true"
+          Secrets:
+            - Name: DATABASE_PASSWORD
+              ValueFrom: !Sub "${AppSecrets}:DATABASE_PASSWORD::"
+            - Name: OPENAI_API_KEY
+              ValueFrom: !Sub "${AppSecrets}:OPENAI_API_KEY::"
+            - Name: PAYSTACK_SECRET_KEY
+              ValueFrom: !Sub "${AppSecrets}:PAYSTACK_SECRET_KEY::"
+            - Name: WHATSAPP_CLOUD_ACCESS_TOKEN
+              ValueFrom: !Sub "${AppSecrets}:WHATSAPP_CLOUD_ACCESS_TOKEN::"
+            - Name: PII_ENCRYPTION_KEY
+              ValueFrom: !Sub "${AppSecrets}:PII_ENCRYPTION_KEY::"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref LogGroup
+              awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: backend
+
+Outputs:
+  ClusterName:
+    Value: !Ref Cluster
+  InboundMessagesQueueUrl:
+    Value: !Ref InboundMessagesQueue
+  PaymentEventsQueueUrl:
+    Value: !Ref PaymentEventsQueue

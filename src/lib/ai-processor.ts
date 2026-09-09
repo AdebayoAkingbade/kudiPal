@@ -5,6 +5,15 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
 
+type ReceiptAnalysis = {
+    amount?: number | string;
+    currency?: string;
+    category?: string;
+    merchant_name?: string;
+    transaction_date?: string;
+    description?: string;
+};
+
 export async function processReceipt(receiptId: string, storagePath: string) {
     try {
         // 1. Get the public URL for the file from Supabase Storage
@@ -32,7 +41,7 @@ export async function processReceipt(receiptId: string, storagePath: string) {
             response_format: { type: "json_object" },
         });
 
-        const analysis = JSON.parse(response.choices[0].message.content || '{}');
+        const analysis = JSON.parse(response.choices[0].message.content || '{}') as ReceiptAnalysis;
 
         // 3. Update the receipt status and raw JSON
         const { error: updateError } = await supabase
@@ -70,7 +79,7 @@ export async function processReceipt(receiptId: string, storagePath: string) {
 
         return { success: true, analysis };
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('AI Processing Error:', error);
 
         // Mark receipt as error state
@@ -79,6 +88,6 @@ export async function processReceipt(receiptId: string, storagePath: string) {
             .update({ status: 'error' })
             .eq('id', receiptId);
 
-        return { success: false, error: error.message };
+        return { success: false, error: error instanceof Error ? error.message : "AI processing failed." };
     }
 }

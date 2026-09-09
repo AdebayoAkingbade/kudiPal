@@ -65,8 +65,8 @@ export default function UploadDataPage() {
             storeLatestSummary(summary);
             setUploadedFiles(Array.from(files).map((file) => file.name));
             router.push('/onboarding/processing');
-        } catch (err: any) {
-            setError(err.message || "Upload failed. Please try again.");
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Upload failed. Please try again.");
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = "";

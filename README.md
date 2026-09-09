@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KudiPal
 
-## Getting Started
+KudiPal is a WhatsApp-first commerce and business operating system for African SMEs.
 
-First, run the development server:
+It helps merchants make more money, save time, and avoid losing money by combining WhatsApp commerce workflows, seller matching, payments, inventory operations, customer records, reminders, and weekly business insights.
+
+## What Is Included
+
+- Java 21 Spring Boot 3 backend
+- PostgreSQL schema with Flyway migrations, indexes, audit logging, idempotency tables, and row-level security
+- Meta WhatsApp Cloud API webhook flow
+- Paystack payment initialization and webhook validation
+- OpenAI structured intent extraction support
+- REST API scaffolding, OpenAPI metadata, DTO/error-handling pattern
+- Dockerfile and Docker Compose local stack
+- GitHub Actions CI
+- AWS ECS Fargate/RDS/Secrets Manager/SQS baseline
+- Grafana dashboard and Prometheus alert rules
+- Architecture, deployment, and security documentation
+
+## Core Buyer Flow
+
+1. Buyer sends a WhatsApp message such as `I want to buy a timberland brown shoe, budget 35000, location Lekki`.
+2. KudiPal detects `BUY_REQUEST` and extracts product, budget, and location.
+3. Inventory is searched and sellers are ranked by distance, price, reputation, and response speed.
+4. Buyer chooses one of the top 3 sellers.
+5. Seller accepts or declines.
+6. Paystack payment link is generated.
+7. Payment webhook updates the order idempotently and notifies both parties.
+8. Automated reminders nudge inactive buyers.
+
+## Local Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+docker compose up --build
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Backend:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- API: `http://localhost:8081`
+- OpenAPI UI: `http://localhost:8081/swagger-ui.html`
+- Health: `http://localhost:8081/actuator/health`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Frontend:
 
-## Learn More
+```bash
+npm install
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+## Documentation
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [Architecture](docs/architecture/README.md)
+- [AI Marketplace Plan](docs/architecture/AI_MARKETPLACE_PLAN.md)
+- [Frontend Route Structure](docs/frontend/ROUTE_STRUCTURE.md)
+- [API](docs/API.md)
+- [Deployment](docs/DEPLOYMENT.md)
+- [Security Controls](docs/security/SECURITY_CONTROLS.md)
+- [WhatsApp Onboarding](docs/WHATSAPP_ONBOARDING.md)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Production Notes
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Before launch, configure production JWT issuer/JWKS, strict CORS origins, AWS WAF rules, Secrets Manager values, Paystack live keys, Meta WhatsApp app credentials, OpenAI key, and AES-256-GCM PII encryption keys. Run dependency scanning, SAST, container scanning, and a payment-flow security review before enabling live payments.

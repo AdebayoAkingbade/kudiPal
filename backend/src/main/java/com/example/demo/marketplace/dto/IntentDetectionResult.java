@@ -5,6 +5,9 @@ public class IntentDetectionResult {
     private String product;
     private long budget;
     private String location;
+    private long amount;
+    private int quantity;
+    private String command;
     private double confidence;
     private String source;
 
@@ -50,6 +53,30 @@ public class IntentDetectionResult {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public long getAmount() {
+        return amount;
+    }
+
+    public void setAmount(long amount) {
+        this.amount = amount;
+    }
+
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public String getCommand() {
+        return command;
+    }
+
+    public void setCommand(String command) {
+        this.command = command;
     }
 
     public double getConfidence() {

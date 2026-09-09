@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
@@ -21,10 +22,10 @@ export default function TestSupabase() {
 
                 setStatus('success')
                 setMessage('Successfully connected to Supabase!')
-            } catch (err: any) {
+            } catch (err: unknown) {
                 console.error('Supabase connection error:', err)
                 setStatus('error')
-                setMessage(`Error: ${err.message}`)
+                setMessage(`Error: ${err instanceof Error ? err.message : 'Unknown Supabase connection error'}`)
             }
         }
 
@@ -75,12 +76,12 @@ export default function TestSupabase() {
                 This page verifies that the `@supabase/supabase-js` client is correctly initialized with your environment variables and can communicate with your Supabase project.
             </div>
 
-            <a
+            <Link
                 href="/"
                 className="mt-8 px-6 py-2 rounded-full bg-zinc-900 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800 transition-all text-zinc-300 text-sm font-medium"
             >
                 Back to Home
-            </a>
+            </Link>
         </div>
     )
 }

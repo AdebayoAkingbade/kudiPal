@@ -59,12 +59,28 @@ public class OpenAiStructuredExtractionService {
                             "type", "object",
                             "additionalProperties", false,
                             "properties", Map.of(
-                                "intent", Map.of("type", "string"),
+                                "intent", Map.of(
+                                    "type", "string",
+                                    "enum", List.of(
+                                        "BUY_REQUEST",
+                                        "SELLER_ACCEPT",
+                                        "SELLER_DECLINE",
+                                        "RECORD_SALE",
+                                        "CREATE_INVOICE",
+                                        "CUSTOMER_SUPPORT",
+                                        "INVENTORY_UPDATE",
+                                        "UNKNOWN"
+                                    )
+                                ),
                                 "product", Map.of("type", "string"),
                                 "budget", Map.of("type", "integer"),
-                                "location", Map.of("type", "string")
+                                "location", Map.of("type", "string"),
+                                "amount", Map.of("type", "integer"),
+                                "quantity", Map.of("type", "integer"),
+                                "command", Map.of("type", "string"),
+                                "confidence", Map.of("type", "number", "minimum", 0, "maximum", 1)
                             ),
-                            "required", List.of("intent", "product", "budget", "location")
+                            "required", List.of("intent", "product", "budget", "location", "amount", "quantity", "command", "confidence")
                         )
                     )
                 )
@@ -91,14 +107,18 @@ public class OpenAiStructuredExtractionService {
 
             String text = content.get(0).path("text").asText();
             JsonNode parsed = objectMapper.readTree(text);
-            return new IntentDetectionResult(
+            IntentDetectionResult result = new IntentDetectionResult(
                 parsed.path("intent").asText("UNKNOWN"),
                 parsed.path("product").asText(""),
                 parsed.path("budget").asLong(0),
                 parsed.path("location").asText(""),
-                0.90,
+                parsed.path("confidence").asDouble(0.90),
                 "OPENAI"
             );
+            result.setAmount(parsed.path("amount").asLong(0));
+            result.setQuantity(parsed.path("quantity").asInt(0));
+            result.setCommand(parsed.path("command").asText(""));
+            return result;
         } catch (Exception exception) {
             return null;
         }

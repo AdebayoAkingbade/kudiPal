@@ -22,7 +22,7 @@ export function WhatsAppFeature() {
                         </h2>
 
                         <p className="text-lg text-gray-600 leading-relaxed">
-                            Don't have time to log into a dashboard? No problem. Get a full weekly breakdown of your business performance sent directly to your WhatsApp.
+                            Do not have time to log into a dashboard? No problem. Get a full weekly breakdown of your business performance sent directly to your WhatsApp.
                         </p>
 
                         <div className="space-y-4">
@@ -64,7 +64,7 @@ export function WhatsAppFeature() {
                                 </div>
 
                                 <div className="self-start bg-white p-3 rounded-lg rounded-tl-none shadow-sm max-w-[85%] text-sm">
-                                    <p>You're up 25%! 🚀 Your new "Bundle Deal" strategy is working well. Keep it up!</p>
+                                    <p>You are up 25%! Your new &quot;Bundle Deal&quot; strategy is working well. Keep it up!</p>
                                     <p className="mt-1 text-xs text-gray-500 text-right">09:06 AM</p>
                                 </div>
                             </div>

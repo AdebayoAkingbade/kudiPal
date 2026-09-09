@@ -4,7 +4,7 @@ export function ProblemSolution() {
     const problems = [
         {
             title: "No Financial Clarity",
-            description: "You run overdrafts, can't track debts, and wake up with panic attacks about your finances.",
+            description: "You run overdrafts, cannot track debts, and wake up with panic attacks about your finances.",
             icon: <TrendingDown className="h-6 w-6 text-red-600" />,
             bg: "bg-red-50",
         },
@@ -30,7 +30,7 @@ export function ProblemSolution() {
                         The Problem We Solve
                     </h2>
                     <p className="text-muted-foreground text-lg">
-                        We've seen how Nigerian SMB owners struggle daily. KudiPal turns messy money admin into clear next steps.
+                        We have seen how Nigerian SMB owners struggle daily. KudiPal turns messy money admin into clear next steps.
                     </p>
                 </div>
 

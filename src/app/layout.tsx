@@ -15,11 +15,32 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "KudiPal",
-  description: "Friendly money insights for Nigerian businesses",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
+  title: {
+    default: "KudiPal",
+    template: "%s | KudiPal",
+  },
+  description: "WhatsApp-first marketplace copilot for Nigerian buyers, vendors, and service agents.",
+  manifest: "/manifest.json",
   icons: {
-    icon: "/images/kudipal-logo.png",
-    apple: "/images/kudipal-logo.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192x192.png", sizes: "192x192", type: "image/png" }],
+  },
+  openGraph: {
+    title: "KudiPal",
+    description: "WhatsApp-first marketplace copilot for Nigerian buyers, vendors, and service agents.",
+    images: [
+      {
+        url: "/images/kudi_logo.png",
+        width: 1536,
+        height: 1024,
+        alt: "KudiPal",
+      },
+    ],
   },
 };
 

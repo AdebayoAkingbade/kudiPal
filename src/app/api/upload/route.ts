@@ -17,7 +17,7 @@ export async function POST(req: Request) {
         const filePath = `${userId}/${fileName}`;
 
         // 1. Upload to Supabase Storage
-        const { data: storageData, error: storageError } = await supabase.storage
+        const { error: storageError } = await supabase.storage
             .from('receipts')
             .upload(filePath, file);
 
@@ -40,8 +40,12 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ success: true, receipt: dbData });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Upload Error:', error);
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
     }
+}
+
+function getErrorMessage(error: unknown) {
+    return error instanceof Error ? error.message : "Upload failed.";
 }

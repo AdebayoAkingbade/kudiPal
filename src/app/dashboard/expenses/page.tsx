@@ -1,13 +1,10 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react";
-import React from "react";
-import { usePaystackPayment } from "react-paystack";
+import { useCallback, useEffect, useState } from "react";
 import { fetchApi } from "@/lib/api";
 import {
     Search,
     Filter,
-    ArrowUpRight,
     TrendingUp,
     CreditCard,
     Receipt,
@@ -25,37 +22,24 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { supabase } from "@/lib/supabase";
+
+type ExpenseRow = {
+    merchant_name?: string | null;
+    category?: string | null;
+    transaction_date?: string | null;
+    amount?: number | string | null;
+};
+
+type MonoInstance = {
+    open: () => void;
+};
 
 export default function ExpensesPage() {
-    const [loading, setLoading] = useState(true);
-    const [expenses, setExpenses] = useState<any[]>([]);
+    const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
     const [totalExpenses, setTotalExpenses] = useState(0);
 
-    // Paystack Identity Config
-    const paystackConfig = {
-        reference: `bank_sync_${Date.now()}`,
-        email: 'adebayo@business.com', // Would come from profile naturally
-        amount: 5000,   // Small verification charge (e.g. NGN 50)
-        publicKey: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY || '',
-    };
-    const initializePayment = usePaystackPayment(paystackConfig);
-
-    const handlePaystackSuccess = async (reference: any) => {
-        try {
-            await fetchApi('/paystack/verify-identity', { method: 'POST' });
-            alert("Bank connected securely via Paystack!");
-            setShowConnectBank(false);
-        } catch (err: any) {
-            alert(`Verification failed: ${err.message}`);
-        }
-    };
-
-    const handlePaystackClose = () => {
-        console.log("Paystack closed");
-    };
     const [searchQuery, setSearchQuery] = useState('');
-    const [monoInstance, setMonoInstance] = useState<any>(null);
+    const [monoInstance] = useState<MonoInstance | null>(null);
 
     // Modal states
     const [showAddExpense, setShowAddExpense] = useState(false);
@@ -89,21 +73,21 @@ export default function ExpensesPage() {
         { name: "Sterling Bank", logo: "🏦", color: "bg-purple-50 border-purple-200 text-purple-700" },
     ];
 
-    useEffect(() => {
-        fetchExpenses();
-    }, []);
-
-    async function fetchExpenses() {
+    const fetchExpenses = useCallback(async () => {
         try {
-            const data = await fetchApi('/expenses');
-            setExpenses(data || []);
-            setTotalExpenses(data?.reduce((acc: any, curr: any) => acc + Number(curr.amount), 0) || 0);
+            const data = await fetchApi('/expenses') as ExpenseRow[] | null;
+            const nextExpenses = Array.isArray(data) ? data : [];
+
+            setExpenses(nextExpenses);
+            setTotalExpenses(nextExpenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0));
         } catch (err) {
             console.error("Failed to fetch expenses:", err);
-        } finally {
-            setLoading(false);
         }
-    }
+    }, []);
+
+    useEffect(() => {
+        void fetchExpenses();
+    }, [fetchExpenses]);
 
     const handleExport = () => {
         const rows = [
@@ -145,8 +129,8 @@ export default function ExpensesPage() {
             setShowAddExpense(false);
             setNewExpense({ merchant_name: '', category: 'General', amount: '', transaction_date: new Date().toISOString().split('T')[0] });
             await fetchExpenses();
-        } catch (error: any) {
-            alert(`Error: ${error.message}`);
+        } catch (error: unknown) {
+            alert(`Error: ${error instanceof Error ? error.message : "Expense could not be saved."}`);
         }
         setSubmitting(false);
     };

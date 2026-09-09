@@ -19,16 +19,11 @@ const applyThemeClass = (theme: Theme) => {
 };
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-    const [theme, setThemeState] = useState<Theme>("light");
+    const [theme, setThemeState] = useState<Theme>(getInitialTheme);
 
-    // Initialize from localStorage or system preference
     useEffect(() => {
-        const stored = (typeof window !== "undefined" && localStorage.getItem("theme")) as Theme | null;
-        const prefersDark = typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const initial = stored === "light" || stored === "dark" ? stored : prefersDark ? "dark" : "light";
-        setThemeState(initial);
-        applyThemeClass(initial);
-    }, []);
+        applyThemeClass(theme);
+    }, [theme]);
 
     const setTheme = (next: Theme) => {
         setThemeState(next);
@@ -52,3 +47,12 @@ export const useTheme = () => {
     if (!ctx) throw new Error("useTheme must be used inside ThemeProvider");
     return ctx;
 };
+
+function getInitialTheme(): Theme {
+    if (typeof window === "undefined") return "light";
+
+    const stored = localStorage.getItem("theme");
+    if (stored === "light" || stored === "dark") return stored;
+
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
