@@ -2,23 +2,40 @@
 
 KudiPal uses the Next.js App Router. The maintainable source is in `src/app`, and URLs come from folders with `page.tsx` files.
 
+Folders wrapped in parentheses are route groups. They organize source code but do not appear in the URL.
+
 ## Route Map
 
 ```text
-src/app/page.tsx                         -> /
-src/app/marketplace/page.tsx             -> /marketplace
-src/app/whatsapp/page.tsx                -> /whatsapp
-src/app/security/page.tsx                -> /security
-src/app/scale/page.tsx                   -> /scale
-src/app/login/page.tsx                   -> /login
-src/app/dashboard/page.tsx               -> /dashboard
-src/app/dashboard/ask-ai/page.tsx        -> /dashboard/ask-ai
-src/app/dashboard/ai-insights/page.tsx   -> /dashboard/ai-insights
-src/app/dashboard/expenses/page.tsx      -> /dashboard/expenses
-src/app/dashboard/revenue/page.tsx       -> /dashboard/revenue
-src/app/onboarding/*/page.tsx            -> /onboarding/*
+src/app/(public)/page.tsx                         -> /
+src/app/(public)/marketplace/page.tsx             -> /marketplace
+src/app/(public)/whatsapp/page.tsx                -> /whatsapp
+src/app/(public)/security/page.tsx                -> /security
+src/app/(public)/scale/page.tsx                   -> /scale
+src/app/(auth)/login/page.tsx                     -> /login
+src/app/(auth)/auth/callback/route.ts             -> /auth/callback
+src/app/(dashboard)/dashboard/page.tsx            -> /dashboard
+src/app/(dashboard)/dashboard/ask-ai/page.tsx     -> /dashboard/ask-ai
+src/app/(dashboard)/dashboard/ai-insights/page.tsx -> /dashboard/ai-insights
+src/app/(dashboard)/dashboard/expenses/page.tsx   -> /dashboard/expenses
+src/app/(dashboard)/dashboard/revenue/page.tsx    -> /dashboard/revenue
+src/app/(onboarding)/onboarding/*/page.tsx        -> /onboarding/*
+src/app/(dev)/test-supabase/page.tsx              -> /test-supabase
 src/app/api/**/route.ts                  -> API routes
 ```
+
+## Frontend Source Layout
+
+```text
+src/app/                  Route files, layouts, metadata, and API route handlers.
+src/features/marketplace/  KudiPal marketplace parsing, RAG-style evidence, and ranking demo logic.
+src/components/ui/         Reusable UI primitives.
+src/components/layout/     Shared header/footer.
+src/components/branding/   Brand components.
+src/lib/                   Shared utilities and API clients.
+```
+
+Route files should stay thin. If a page starts collecting business logic, move that logic into `src/features/<area>` and import it into the route.
 
 ## Files Not To Edit
 
@@ -33,3 +50,4 @@ src/app/api/**/route.ts                  -> API routes
 - Use `next/image` for UI images when possible.
 - Keep filename casing exact. Vercel runs on Linux, so `Kudi_Logo.png` and `kudi_logo.png` are different files.
 - Do not point metadata or manifests at files that do not exist.
+- For external image hosts, add the host to `images.remotePatterns` and to `NEXT_PUBLIC_IMAGE_CSP_SOURCES` if CSP blocks it.

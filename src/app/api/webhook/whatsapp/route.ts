@@ -9,16 +9,24 @@ type ExpenseRow = {
     amount?: number | string | null;
 };
 
+const MAX_WEBHOOK_BODY_BYTES = 10_000;
+
 export async function POST(req: Request) {
     try {
-        const supabase = getSupabaseClient();
-        const twilioClient = getTwilioClient();
-        const openai = getOpenAIClient();
+        const twilioAuthToken = requiredEnv("TWILIO_AUTH_TOKEN");
         const twilioNumber = requiredEnv("TWILIO_WHATSAPP_NUMBER");
 
         // Twilio sends application/x-www-form-urlencoded
         const bodyText = await req.text();
+        if (bodyText.length > MAX_WEBHOOK_BODY_BYTES) {
+            return NextResponse.json({ error: 'Payload too large' }, { status: 413 });
+        }
+
         const urlParams = new URLSearchParams(bodyText);
+
+        if (!isTrustedTwilioRequest(req, urlParams, twilioAuthToken)) {
+            return NextResponse.json({ error: 'Invalid webhook signature' }, { status: 403 });
+        }
         
         // Sender: whatsapp:+23480123...
         const twilioFrom = urlParams.get('From'); 
@@ -28,7 +36,11 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid Payload' }, { status: 400 });
         }
         
-        console.log(`Received WhatsApp message from ${twilioFrom}: ${messageBody}`);
+        console.log(`Received WhatsApp message from ${maskPhoneNumber(twilioFrom)}`);
+
+        const supabase = getSupabaseClient();
+        const twilioClient = getTwilioClient(twilioAuthToken);
+        const openai = getOpenAIClient();
         
         const senderPhone = twilioFrom.replace('whatsapp:', '');
         
@@ -93,7 +105,7 @@ export async function POST(req: Request) {
         
     } catch (error: unknown) {
         console.error('Webhook processing error:', error);
-        return NextResponse.json({ error: getErrorMessage(error) }, { status: 500 });
+        return NextResponse.json({ error: getPublicErrorMessage(error) }, { status: 500 });
     }
 }
 
@@ -104,9 +116,8 @@ function getSupabaseClient() {
     );
 }
 
-function getTwilioClient() {
+function getTwilioClient(authToken: string) {
     const accountSid = requiredEnv("TWILIO_ACCOUNT_SID");
-    const authToken = requiredEnv("TWILIO_AUTH_TOKEN");
 
     if (!accountSid.startsWith("AC")) {
         throw new Error("TWILIO_ACCOUNT_SID must start with AC.");
@@ -129,6 +140,45 @@ function requiredEnv(name: string) {
     return value;
 }
 
-function getErrorMessage(error: unknown) {
-    return error instanceof Error ? error.message : "Unknown webhook processing error";
+function isTrustedTwilioRequest(req: Request, params: URLSearchParams, authToken: string) {
+    const signature = req.headers.get('x-twilio-signature');
+
+    if (!signature) {
+        return process.env.NODE_ENV !== 'production';
+    }
+
+    return twilio.validateRequest(
+        authToken,
+        signature,
+        getWebhookUrl(req),
+        Object.fromEntries(params.entries()),
+    );
+}
+
+function getWebhookUrl(req: Request) {
+    const url = new URL(req.url);
+    const forwardedHost = req.headers.get('x-forwarded-host') ?? req.headers.get('host');
+    const forwardedProto = req.headers.get('x-forwarded-proto');
+
+    if (forwardedHost) {
+        url.host = forwardedHost;
+    }
+
+    if (forwardedProto) {
+        url.protocol = `${forwardedProto}:`;
+    }
+
+    return url.toString();
+}
+
+function maskPhoneNumber(value: string) {
+    return value.replace(/\d(?=\d{4})/g, '*');
+}
+
+function getPublicErrorMessage(error: unknown) {
+    if (process.env.NODE_ENV === 'development') {
+        return error instanceof Error ? error.message : "Unknown webhook processing error";
+    }
+
+    return "Webhook processing failed";
 }

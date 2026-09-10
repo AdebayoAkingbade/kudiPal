@@ -61,4 +61,6 @@ Product relevance is a filter before scoring so unrelated inventory does not ran
 
 ## Scale Notes
 
-The target scale of 1 million SMEs requires tenant-aware data access, partitioning hot event tables by month at higher volume, SQS decoupling for webhook bursts, Redis-backed rate limits, read replicas for analytics, and asynchronous insight generation.
+The near-term scale target should still be proven market by market, but the architecture should be ready for a billion-user path. That means tenant-aware data access, hard service boundaries, partitioned event tables, SQS or Kafka-style decoupling for webhook bursts, Redis-backed rate limits, read replicas for analytics, multi-region failover, data residency controls, bot/fraud throttling, and asynchronous insight generation.
+
+The WhatsApp matching loop should separate NLP extraction, retrieval, ranking, seller acceptance, payment, fulfillment, and learning feedback. Each part needs its own tests, dashboards, rollback path, and abuse controls before traffic is increased.

@@ -1,6 +1,6 @@
-'use client'
+"use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchApi } from "@/lib/api";
 import {
     Search,
@@ -33,6 +33,29 @@ type ExpenseRow = {
 type MonoInstance = {
     open: () => void;
 };
+
+async function loadExpenses() {
+    const data = await fetchApi('/expenses') as ExpenseRow[] | null;
+    return Array.isArray(data) ? data : [];
+}
+
+function totalExpenseAmount(expenses: ExpenseRow[]) {
+    return expenses.reduce((acc, curr) => acc + parseExpenseAmount(curr.amount), 0);
+}
+
+function formatExpenseDate(value?: string | null) {
+    if (!value) {
+        return "No date";
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? "No date" : date.toLocaleDateString();
+}
+
+function parseExpenseAmount(value?: number | string | null) {
+    const amount = Number(value ?? 0);
+    return Number.isFinite(amount) ? amount : 0;
+}
 
 export default function ExpensesPage() {
     const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
@@ -73,21 +96,26 @@ export default function ExpensesPage() {
         { name: "Sterling Bank", logo: "🏦", color: "bg-purple-50 border-purple-200 text-purple-700" },
     ];
 
-    const fetchExpenses = useCallback(async () => {
-        try {
-            const data = await fetchApi('/expenses') as ExpenseRow[] | null;
-            const nextExpenses = Array.isArray(data) ? data : [];
-
-            setExpenses(nextExpenses);
-            setTotalExpenses(nextExpenses.reduce((acc, curr) => acc + Number(curr.amount || 0), 0));
-        } catch (err) {
-            console.error("Failed to fetch expenses:", err);
-        }
-    }, []);
-
     useEffect(() => {
-        void fetchExpenses();
-    }, [fetchExpenses]);
+        let isActive = true;
+
+        void loadExpenses()
+            .then((nextExpenses) => {
+                if (!isActive) {
+                    return;
+                }
+
+                setExpenses(nextExpenses);
+                setTotalExpenses(totalExpenseAmount(nextExpenses));
+            })
+            .catch((err) => {
+                console.error("Failed to fetch expenses:", err);
+            });
+
+        return () => {
+            isActive = false;
+        };
+    }, []);
 
     const handleExport = () => {
         const rows = [
@@ -95,8 +123,8 @@ export default function ExpensesPage() {
             ...expenses.map(e => [
                 e.merchant_name || 'Vendor',
                 e.category || 'General',
-                new Date(e.transaction_date).toLocaleDateString(),
-                Number(e.amount).toFixed(2)
+                formatExpenseDate(e.transaction_date),
+                parseExpenseAmount(e.amount).toFixed(2)
             ])
         ];
         const csv = rows.map(r => r.join(',')).join('\n');
@@ -128,7 +156,9 @@ export default function ExpensesPage() {
 
             setShowAddExpense(false);
             setNewExpense({ merchant_name: '', category: 'General', amount: '', transaction_date: new Date().toISOString().split('T')[0] });
-            await fetchExpenses();
+            const nextExpenses = await loadExpenses();
+            setExpenses(nextExpenses);
+            setTotalExpenses(totalExpenseAmount(nextExpenses));
         } catch (error: unknown) {
             alert(`Error: ${error instanceof Error ? error.message : "Expense could not be saved."}`);
         }
@@ -254,10 +284,10 @@ export default function ExpensesPage() {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-4 text-sm text-slate-500">
-                                                        {new Date(exp.transaction_date).toLocaleDateString()}
+                                                        {formatExpenseDate(exp.transaction_date)}
                                                     </td>
                                                     <td className="px-6 py-4 font-bold text-sm text-slate-900">
-                                                        ₦{Number(exp.amount).toLocaleString()}
+                                                        ₦{parseExpenseAmount(exp.amount).toLocaleString()}
                                                     </td>
                                                     <td className="px-6 py-4 text-right">
                                                         <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 group-hover:text-primary">

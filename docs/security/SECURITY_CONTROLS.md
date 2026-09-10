@@ -1,5 +1,7 @@
 # KudiPal Security Controls
 
+No application can honestly promise to be impossible to break. KudiPal should aim for defense in depth: prevent common attacks, reduce blast radius, detect abnormal behavior quickly, preserve evidence, and recover fast.
+
 ## Application Security
 
 - JWT resource-server authentication protects all APIs except WhatsApp and Paystack webhooks.
@@ -38,3 +40,5 @@
 - Set strict CORS origins for production dashboards.
 - Configure SAST, dependency scanning, secret scanning, and container scanning in CI.
 - Run annual penetration tests and payment-flow threat modeling.
+- Run continuous authorization tests that prove one tenant can never read or mutate another tenant's data.
+- Put WhatsApp, payment, and upload endpoints behind replay protection, idempotency keys, size limits, and anomaly alerts.

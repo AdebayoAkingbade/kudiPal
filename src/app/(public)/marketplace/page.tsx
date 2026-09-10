@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight, Database, MapPin, MessageSquareText, ShieldCheck } from "lucide-react";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
-import { RequestMatchDemo } from "@/components/marketplace/request-match-demo";
+import { RequestMatchDemo } from "@/features/marketplace/request-match-demo";
 import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {

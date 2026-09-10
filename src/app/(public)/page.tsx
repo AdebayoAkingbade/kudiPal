@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
-import { RequestMatchDemo } from "@/components/marketplace/request-match-demo";
+import { RequestMatchDemo } from "@/features/marketplace/request-match-demo";
 import { Button } from "@/components/ui/button";
 
 const routeCards = [
@@ -95,7 +95,7 @@ export default function Home() {
                   <span className="h-3 w-3 rounded-full bg-amber-300" />
                   <span className="h-3 w-3 rounded-full bg-emerald-400" />
                 </div>
-                <p className="text-xs font-semibold text-slate-400">/src/app/page.tsx</p>
+                <p className="text-xs font-semibold text-slate-400">/src/app/(public)/page.tsx</p>
               </div>
               <div className="grid gap-4 p-4">
                 <Image
