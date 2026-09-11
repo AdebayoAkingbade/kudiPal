@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Play, X } from "lucide-react";
 
 type Tutorial = {
@@ -13,6 +14,7 @@ type Tutorial = {
 };
 
 export function VideoDemo() {
+    const router = useRouter();
     const tutorials: Tutorial[] = [
         {
             title: "Daily AI Insights",
@@ -180,7 +182,7 @@ export function VideoDemo() {
                                 <div className="mt-12 pt-8 border-t border-white/10 flex flex-col gap-4">
                                     <button
                                         className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-primary/20"
-                                        onClick={() => window.location.href = '/onboarding/account-setup'}
+                                        onClick={() => router.push('/onboarding/account-setup')}
                                     >
                                         {activeTutorial.action}
                                     </button>

@@ -49,7 +49,7 @@ export default function WhatsAppPage() {
   return (
     <main className="min-h-screen bg-background">
       <Header />
-      <section className="bg-[#F9FAFB]">
+      <section className="bg-slate-50">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-[0.95fr_1.05fr] md:py-14">
           <div>
             <p className="text-sm font-bold uppercase text-primary">WhatsApp route</p>
@@ -69,7 +69,7 @@ export default function WhatsAppPage() {
             </div>
           </div>
 
-          <div className="mx-auto w-full max-w-sm rounded-[2rem] border-8 border-slate-950 bg-[#ECE5DD] p-4 shadow-2xl">
+          <div className="mx-auto w-full max-w-sm rounded-[2rem] border-8 border-slate-950 bg-[#ECE5DD] p-4 shadow-2xl dark:border-slate-800 dark:bg-[#0B141A]">
             <div className="mb-4 flex items-center gap-2 rounded-t-[1.25rem] bg-[#075E54] px-3 py-3 text-white">
               <div className="h-9 w-9 rounded-full bg-white/20" />
               <div>
@@ -123,7 +123,7 @@ function ChatBubble({ children, side }: { children: React.ReactNode; side: "buye
       <p
         className={
           side === "buyer"
-            ? "max-w-[82%] rounded-lg rounded-tr-sm bg-[#DCF8C6] px-3 py-2 text-sm leading-6 text-slate-950"
+            ? "max-w-[82%] rounded-lg rounded-tr-sm bg-[#DCF8C6] px-3 py-2 text-sm leading-6 text-slate-950 dark:bg-[#005C4B] dark:text-white"
             : "max-w-[82%] rounded-lg rounded-tl-sm bg-white px-3 py-2 text-sm leading-6 text-slate-950 shadow-sm"
         }
       >

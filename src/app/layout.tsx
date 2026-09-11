@@ -52,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${poppins.variable} antialiased font-sans bg-background text-foreground`}
+        className={`${inter.variable} ${poppins.variable} theme-smooth antialiased font-sans bg-background text-foreground`}
         suppressHydrationWarning
       >
         <ThemeProvider>

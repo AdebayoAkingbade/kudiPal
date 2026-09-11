@@ -65,7 +65,7 @@ export default function SecurityPage() {
         </div>
       </section>
 
-      <section className="bg-[#FFF7ED] py-10">
+      <section className="bg-orange-50 py-10 dark:bg-secondary">
         <div className="mx-auto grid max-w-7xl gap-4 px-4 md:grid-cols-[0.85fr_1.15fr]">
           <div>
             <Siren className="h-7 w-7 text-orange-700" />

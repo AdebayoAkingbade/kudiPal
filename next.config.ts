@@ -1,14 +1,6 @@
 import type { NextConfig } from "next";
-import createPWA from "next-pwa";
 
 const isDevelopment = process.env.NODE_ENV === "development";
-
-const withPWA = createPWA({
-  dest: "public",
-  disable: isDevelopment,
-  register: true,
-  skipWaiting: true,
-});
 
 const scriptSources = [
   "'self'",
@@ -34,6 +26,7 @@ const connectSources = [
 ];
 
 const nextConfig: NextConfig = {
+  agentRules: false,
   images: {
     remotePatterns: [
       {
@@ -89,4 +82,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;
