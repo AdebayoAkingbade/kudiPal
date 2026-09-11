@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase';
+import { createClient } from '@supabase/supabase-js';
 import { nanoid } from 'nanoid';
 
 export async function POST(req: Request) {
     try {
+        const supabase = getSupabaseRouteClient();
         const formData = await req.formData();
         const file = formData.get('file') as File;
         const userId = formData.get('userId') as string;
@@ -48,4 +49,15 @@ export async function POST(req: Request) {
 
 function getErrorMessage(error: unknown) {
     return error instanceof Error ? error.message : "Upload failed.";
+}
+
+function getSupabaseRouteClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error("Supabase upload configuration is missing.");
+    }
+
+    return createClient(supabaseUrl, supabaseAnonKey);
 }
